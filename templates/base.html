@@ -11,7 +11,10 @@
     <header>
         <div class="container">
             <nav>
-                <a href="{{ url_for('main.index') }}" class="logo">IPA Library</a>
+                <a href="{{ url_for('main.index') }}" class="logo">
+                    <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="IPA Library Logo" class="logo-img">
+                    <span>IPA Library</span>
+                </a>
                 <ul>
                     <li><a href="{{ url_for('main.index') }}">Home</a></li>
                     <li><a href="{{ url_for('main.search') }}">Search</a></li>
@@ -19,7 +22,7 @@
                     {% if current_user.is_authenticated %}
                         <li><a href="{{ url_for('main.upload') }}">Upload</a></li>
                         <li class="dropdown">
-                            <a href="#" class="dropdown-trigger">Account</a>
+                            <button class="dropdown-trigger">Account</button>
                             <div class="dropdown-content">
                                 <a href="{{ url_for('auth.profile') }}">Profile</a>
                                 <a href="{{ url_for('auth.logout') }}">Logout</a>

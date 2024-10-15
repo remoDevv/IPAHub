@@ -9,11 +9,15 @@ document.addEventListener('DOMContentLoaded', function() {
         trigger.addEventListener('click', (e) => {
             e.preventDefault();
             content.style.display = content.style.display === 'block' ? 'none' : 'block';
+            content.style.opacity = content.style.display === 'block' ? '1' : '0';
+            content.style.transform = content.style.display === 'block' ? 'translateY(0)' : 'translateY(-10px)';
         });
         
         document.addEventListener('click', (e) => {
             if (!dropdown.contains(e.target)) {
                 content.style.display = 'none';
+                content.style.opacity = '0';
+                content.style.transform = 'translateY(-10px)';
             }
         });
     });
@@ -30,14 +34,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!field.value.trim()) {
                     isValid = false;
                     field.classList.add('error');
+                    const errorMessage = field.nextElementSibling;
+                    if (errorMessage && errorMessage.classList.contains('error-message')) {
+                        errorMessage.textContent = 'This field is required';
+                    } else {
+                        const newErrorMessage = document.createElement('span');
+                        newErrorMessage.textContent = 'This field is required';
+                        newErrorMessage.classList.add('error-message');
+                        field.parentNode.insertBefore(newErrorMessage, field.nextSibling);
+                    }
                 } else {
                     field.classList.remove('error');
+                    const errorMessage = field.nextElementSibling;
+                    if (errorMessage && errorMessage.classList.contains('error-message')) {
+                        errorMessage.remove();
+                    }
                 }
             });
             
             if (!isValid) {
                 e.preventDefault();
-                alert('Please fill in all required fields.');
             }
         });
     });
@@ -60,18 +76,38 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Advanced search functionality
-    const searchForm = document.querySelector('#search-form');
-    const searchResults = document.querySelector('#search-results');
-    
-    if (searchForm && searchResults) {
-        searchForm.addEventListener('submit', (e) => {
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
             e.preventDefault();
-            const query = searchForm.querySelector('input[name="query"]').value;
-            
-            // Normally, we'd use fetch here, but as per the guidelines, we'll avoid it
-            // Instead, we'll submit the form and let the server handle the search
-            searchForm.submit();
+            document.querySelector(this.getAttribute('href')).scrollIntoView({
+                behavior: 'smooth'
+            });
+        });
+    });
+
+    // Add animation to elements when they come into view
+    const animateOnScroll = () => {
+        const elements = document.querySelectorAll('.animate-on-scroll');
+        elements.forEach(element => {
+            const elementTop = element.getBoundingClientRect().top;
+            const elementBottom = element.getBoundingClientRect().bottom;
+            if (elementTop < window.innerHeight && elementBottom > 0) {
+                element.classList.add('animated');
+            }
+        });
+    };
+
+    window.addEventListener('scroll', animateOnScroll);
+    animateOnScroll(); // Run once on load
+
+    // Toggle mobile menu
+    const menuToggle = document.querySelector('.menu-toggle');
+    const navMenu = document.querySelector('nav ul');
+
+    if (menuToggle && navMenu) {
+        menuToggle.addEventListener('click', () => {
+            navMenu.classList.toggle('show');
         });
     }
 });
