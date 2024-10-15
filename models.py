@@ -9,6 +9,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
+    favorites = db.relationship('IPAApp', secondary='favorites', backref=db.backref('favorited_by', lazy='dynamic'))
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -26,6 +27,7 @@ class IPAApp(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship('User', backref=db.backref('apps', lazy=True))
     reviews = db.relationship('Review', backref='app', lazy='dynamic')
+    downloads = db.relationship('Download', backref='app', lazy='dynamic')
 
     @property
     def average_rating(self):
@@ -41,3 +43,15 @@ class Review(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     app_id = db.Column(db.Integer, db.ForeignKey('ipa_app.id'), nullable=False)
     user = db.relationship('User', backref=db.backref('reviews', lazy=True))
+
+class Download(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    app_id = db.Column(db.Integer, db.ForeignKey('ipa_app.id'), nullable=False)
+    user = db.relationship('User', backref=db.backref('downloads', lazy=True))
+
+favorites = db.Table('favorites',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('app_id', db.Integer, db.ForeignKey('ipa_app.id'), primary_key=True)
+)

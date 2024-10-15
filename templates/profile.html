@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}{{ user.username }}'s Profile - IPA Library{% endblock %}
+
+{% block content %}
+    <h1>{{ user.username }}'s Profile</h1>
+    
+    <section class="user-info">
+        <h2>User Information</h2>
+        <p><strong>Username:</strong> {{ user.username }}</p>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+    </section>
+
+    <section class="favorites">
+        <h2>Favorite Apps</h2>
+        {% if user.favorites %}
+            <div class="app-list">
+                {% for app in user.favorites %}
+                    <div class="app-item">
+                        <img src="{{ url_for('static', filename=app.icon_path) }}" alt="{{ app.name }} icon">
+                        <h3>{{ app.name }}</h3>
+                        <p>{{ app.description[:100] }}...</p>
+                        <a href="{{ url_for('main.app_details', app_id=app.id) }}" class="view-details-btn">View Details</a>
+                        <form action="{{ url_for('main.favorite_app', app_id=app.id) }}" method="POST">
+                            <button type="submit" class="remove-favorite-btn">Remove from Favorites</button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>You haven't added any apps to your favorites yet.</p>
+        {% endif %}
+    </section>
+
+    <section class="download-history">
+        <h2>Download History</h2>
+        {% if downloads %}
+            <table class="download-table">
+                <thead>
+                    <tr>
+                        <th>App Name</th>
+                        <th>Download Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for download in downloads %}
+                        <tr>
+                            <td>{{ download.app.name }}</td>
+                            <td>{{ download.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>You haven't downloaded any apps yet.</p>
+        {% endif %}
+    </section>
+{% endblock %}

@@ -3,7 +3,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import login_user, login_required, logout_user, current_user
 from werkzeug.utils import secure_filename
 from app import db, login_manager
-from models import User, IPAApp, Review
+from models import User, IPAApp, Review, Download
 from forms import SignupForm, LoginForm, UploadForm, SearchForm, ReviewForm
 from utils import admin_required, allowed_file
 
@@ -114,6 +114,9 @@ def admin_dashboard():
 @login_required
 def download_app(app_id):
     app = IPAApp.query.get_or_404(app_id)
+    download = Download(user_id=current_user.id, app_id=app.id)
+    db.session.add(download)
+    db.session.commit()
     return send_from_directory(os.path.dirname(app.file_path), os.path.basename(app.file_path), as_attachment=True)
 
 @main_bp.route('/app/<int:app_id>', methods=['GET', 'POST'])
@@ -140,3 +143,22 @@ def app_details(app_id):
         return redirect(url_for('main.app_details', app_id=app.id))
     reviews = Review.query.filter_by(app_id=app.id).order_by(Review.timestamp.desc()).all()
     return render_template('app_details.html', app=app, form=form, reviews=reviews)
+
+@auth_bp.route('/profile')
+@login_required
+def profile():
+    downloads = Download.query.filter_by(user_id=current_user.id).order_by(Download.timestamp.desc()).all()
+    return render_template('profile.html', user=current_user, downloads=downloads)
+
+@main_bp.route('/favorite/<int:app_id>', methods=['POST'])
+@login_required
+def favorite_app(app_id):
+    app = IPAApp.query.get_or_404(app_id)
+    if app in current_user.favorites:
+        current_user.favorites.remove(app)
+        flash('App removed from favorites.', 'success')
+    else:
+        current_user.favorites.append(app)
+        flash('App added to favorites.', 'success')
+    db.session.commit()
+    return redirect(url_for('main.app_details', app_id=app_id))
