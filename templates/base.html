@@ -5,31 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}IPA Library{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
 </head>
 <body>
     <header>
         <div class="container">
             <nav>
+                <a href="{{ url_for('main.index') }}" class="logo">IPA Library</a>
                 <ul>
                     <li><a href="{{ url_for('main.index') }}">Home</a></li>
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-trigger">Menu</a>
-                        <div class="dropdown-content">
-                            <a href="{{ url_for('main.index') }}">Home</a>
-                            {% if current_user.is_authenticated %}
-                                <a href="{{ url_for('auth.logout') }}">Logout</a>
-                            {% else %}
-                                <a href="{{ url_for('auth.login') }}">Login</a>
-                                <a href="{{ url_for('auth.signup') }}">Signup</a>
-                            {% endif %}
-                            <a href="{{ url_for('main.tutorials') }}">Tutorials</a>
-                            <a href="{{ url_for('main.terms') }}">Terms of Service</a>
-                            <a href="{{ url_for('main.privacy') }}">Privacy Policy</a>
-                        </div>
-                    </li>
                     <li><a href="{{ url_for('main.search') }}">Search</a></li>
+                    <li><a href="{{ url_for('main.tutorials') }}">Tutorials</a></li>
                     {% if current_user.is_authenticated %}
                         <li><a href="{{ url_for('main.upload') }}">Upload</a></li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-trigger">Account</a>
+                            <div class="dropdown-content">
+                                <a href="{{ url_for('auth.profile') }}">Profile</a>
+                                <a href="{{ url_for('auth.logout') }}">Logout</a>
+                            </div>
+                        </li>
+                    {% else %}
+                        <li><a href="{{ url_for('auth.login') }}">Login</a></li>
+                        <li><a href="{{ url_for('auth.signup') }}">Sign Up</a></li>
                     {% endif %}
                     {% if current_user.is_authenticated and current_user.is_admin %}
                         <li><a href="{{ url_for('admin.admin_dashboard') }}">Admin</a></li>
@@ -53,7 +51,11 @@
 
     <footer>
         <div class="container">
-            <p>&copy; 2023 IPA Library. All rights reserved.</p>
+            <p>&copy; 2024 IPA Library. All rights reserved.</p>
+            <nav>
+                <a href="{{ url_for('main.terms') }}">Terms of Service</a>
+                <a href="{{ url_for('main.privacy') }}">Privacy Policy</a>
+            </nav>
         </div>
     </footer>
 

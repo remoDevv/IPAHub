@@ -1,48 +1,75 @@
 :root {
     --dark-purple: #2c1e4a;
     --light-purple: #4a3b6b;
+    --accent-purple: #8a7ab3;
     --black: #000000;
     --white: #ffffff;
+    --gray: #cccccc;
+    --dark-gray: #333333;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: var(--black);
     color: var(--white);
-    margin: 0;
-    padding: 0;
+    line-height: 1.6;
 }
 
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 0 20px;
 }
 
+/* Header styles */
 header {
     background-color: var(--dark-purple);
     padding: 20px 0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--white);
+    text-decoration: none;
 }
 
 nav ul {
     list-style-type: none;
-    padding: 0;
-    margin: 0;
+    display: flex;
 }
 
 nav ul li {
-    display: inline;
-    margin-right: 20px;
+    margin-left: 20px;
 }
 
 nav ul li a {
     color: var(--white);
     text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
 }
 
+nav ul li a:hover {
+    color: var(--accent-purple);
+}
+
+/* Dropdown menu */
 .dropdown {
     position: relative;
-    display: inline-block;
 }
 
 .dropdown-content {
@@ -50,8 +77,9 @@ nav ul li a {
     position: absolute;
     background-color: var(--light-purple);
     min-width: 160px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
     z-index: 1;
+    border-radius: 4px;
 }
 
 .dropdown-content a {
@@ -61,18 +89,47 @@ nav ul li a {
     display: block;
 }
 
+.dropdown-content a:hover {
+    background-color: var(--accent-purple);
+}
+
 .dropdown:hover .dropdown-content {
     display: block;
 }
 
-h1, h2, h3 {
-    color: var(--light-purple);
+/* Main content styles */
+main {
+    padding: 40px 0;
 }
 
+h1, h2, h3 {
+    color: var(--accent-purple);
+    margin-bottom: 20px;
+}
+
+h1 {
+    font-size: 36px;
+}
+
+h2 {
+    font-size: 28px;
+}
+
+h3 {
+    font-size: 22px;
+}
+
+p {
+    margin-bottom: 20px;
+}
+
+/* Form styles */
 form {
     background-color: var(--light-purple);
-    padding: 20px;
-    border-radius: 5px;
+    padding: 30px;
+    border-radius: 8px;
+    max-width: 500px;
+    margin: 0 auto;
 }
 
 input[type="text"],
@@ -80,43 +137,104 @@ input[type="email"],
 input[type="password"],
 textarea {
     width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
+    padding: 12px;
+    margin-bottom: 20px;
     border: none;
-    border-radius: 3px;
+    border-radius: 4px;
+    background-color: var(--dark-gray);
+    color: var(--white);
 }
 
-button {
-    background-color: var(--dark-purple);
+input[type="file"] {
+    margin-bottom: 20px;
+}
+
+button,
+input[type="submit"] {
+    background-color: var(--accent-purple);
     color: var(--white);
     border: none;
-    padding: 10px 20px;
+    padding: 12px 20px;
     cursor: pointer;
-    border-radius: 3px;
+    border-radius: 4px;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
 }
 
-button:hover {
-    background-color: var(--light-purple);
+button:hover,
+input[type="submit"]:hover {
+    background-color: var(--dark-purple);
 }
 
+/* App list styles */
 .app-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 30px;
 }
 
 .app-item {
     background-color: var(--light-purple);
     padding: 20px;
-    border-radius: 5px;
+    border-radius: 8px;
     text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.app-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 .app-item img {
     max-width: 100px;
     height: auto;
+    margin-bottom: 15px;
 }
 
+.app-item h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.app-item p {
+    font-size: 14px;
+    color: var(--gray);
+    margin-bottom: 15px;
+}
+
+.download-btn {
+    display: inline-block;
+    background-color: var(--accent-purple);
+    color: var(--white);
+    padding: 8px 16px;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.download-btn:hover {
+    background-color: var(--dark-purple);
+}
+
+/* Alert styles */
+.alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+}
+
+.alert-success {
+    background-color: #28a745;
+    color: var(--white);
+}
+
+.alert-error {
+    background-color: #dc3545;
+    color: var(--white);
+}
+
+/* Footer styles */
 footer {
     background-color: var(--dark-purple);
     color: var(--white);
@@ -125,13 +243,165 @@ footer {
     margin-top: 40px;
 }
 
+/* Responsive design */
 @media (max-width: 768px) {
-    .container {
-        padding: 10px;
+    nav {
+        flex-direction: column;
+        align-items: flex-start;
     }
-    
+
+    nav ul {
+        margin-top: 20px;
+        flex-direction: column;
+    }
+
     nav ul li {
-        display: block;
+        margin-left: 0;
         margin-bottom: 10px;
     }
+
+    .app-list {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+}
+
+/* Admin dashboard styles */
+.admin-section {
+    margin-bottom: 40px;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.admin-table th,
+.admin-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--light-purple);
+}
+
+.admin-table th {
+    background-color: var(--light-purple);
+    font-weight: bold;
+}
+
+.admin-table tr:nth-child(even) {
+    background-color: rgba(74, 59, 107, 0.1);
+}
+
+/* Tutorial styles */
+.tutorial-section {
+    margin-bottom: 40px;
+}
+
+.tutorial-list {
+    list-style-type: none;
+}
+
+.tutorial-list li {
+    margin-bottom: 10px;
+    padding-left: 20px;
+    position: relative;
+}
+
+.tutorial-list li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: var(--accent-purple);
+}
+
+/* Search form styles */
+.search-form {
+    display: flex;
+    margin-bottom: 30px;
+}
+
+.search-form input[type="text"] {
+    flex-grow: 1;
+    margin-right: 10px;
+    margin-bottom: 0;
+}
+
+.search-form button {
+    min-width: 100px;
+}
+
+/* Pagination styles */
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.pagination a {
+    color: var(--white);
+    padding: 8px 16px;
+    text-decoration: none;
+    background-color: var(--light-purple);
+    margin: 0 5px;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.pagination a:hover {
+    background-color: var(--accent-purple);
+}
+
+.pagination .active {
+    background-color: var(--accent-purple);
+}
+
+/* File upload preview */
+#file-preview {
+    max-width: 100%;
+    margin-top: 10px;
+    border-radius: 4px;
+}
+
+/* Error message styles */
+.error-message {
+    color: #dc3545;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+input.error,
+textarea.error {
+    border: 1px solid #dc3545;
+}
+
+/* Accessibility improvements */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Focus styles for better keyboard navigation */
+a:focus,
+button:focus,
+input:focus,
+textarea:focus {
+    outline: 2px solid var(--accent-purple);
+    outline-offset: 2px;
+}
+
+/* Animation for dropdown menu */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.dropdown-content {
+    animation: fadeIn 0.3s ease;
 }
