@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}IPA Library{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
+    <link rel="icon" href="{{ url_for('static', filename='generated-icon.png') }}" type="image/x-icon">
 </head>
 <body>
     <header>
         <div class="container">
             <nav>
                 <a href="{{ url_for('main.index') }}" class="logo">
-                    <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="IPA Library Logo" class="logo-img">
+                    <img src="{{ url_for('static', filename='generated-icon.png') }}" alt="IPA Library Logo" class="logo-img">
                     <span>IPA Library</span>
                 </a>
                 <ul>

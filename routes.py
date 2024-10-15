@@ -3,8 +3,8 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import login_user, login_required, logout_user, current_user
 from werkzeug.utils import secure_filename
 from app import db, login_manager
-from models import User, IPAApp
-from forms import SignupForm, LoginForm, UploadForm, SearchForm
+from models import User, IPAApp, Review
+from forms import SignupForm, LoginForm, UploadForm, SearchForm, ReviewForm
 from utils import admin_required, allowed_file
 
 main_bp = Blueprint('main', __name__)
@@ -17,7 +17,8 @@ def load_user(user_id):
 
 @main_bp.route('/')
 def index():
-    return render_template('index.html')
+    featured_apps = IPAApp.query.order_by(IPAApp.id.desc()).limit(6).all()
+    return render_template('index.html', featured_apps=featured_apps)
 
 @main_bp.route('/search', methods=['GET', 'POST'])
 def search():
@@ -114,3 +115,28 @@ def admin_dashboard():
 def download_app(app_id):
     app = IPAApp.query.get_or_404(app_id)
     return send_from_directory(os.path.dirname(app.file_path), os.path.basename(app.file_path), as_attachment=True)
+
+@main_bp.route('/app/<int:app_id>', methods=['GET', 'POST'])
+@login_required
+def app_details(app_id):
+    app = IPAApp.query.get_or_404(app_id)
+    form = ReviewForm()
+    if form.validate_on_submit():
+        existing_review = Review.query.filter_by(user_id=current_user.id, app_id=app.id).first()
+        if existing_review:
+            existing_review.content = form.content.data
+            existing_review.rating = form.rating.data
+            flash('Your review has been updated!', 'success')
+        else:
+            review = Review(
+                content=form.content.data,
+                rating=form.rating.data,
+                user_id=current_user.id,
+                app_id=app.id
+            )
+            db.session.add(review)
+            flash('Your review has been submitted!', 'success')
+        db.session.commit()
+        return redirect(url_for('main.app_details', app_id=app.id))
+    reviews = Review.query.filter_by(app_id=app.id).order_by(Review.timestamp.desc()).all()
+    return render_template('app_details.html', app=app, form=form, reviews=reviews)

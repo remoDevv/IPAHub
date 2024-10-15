@@ -1,113 +1,58 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Dropdown menu functionality
-    const dropdowns = document.querySelectorAll('.dropdown');
-    
-    dropdowns.forEach(dropdown => {
-        const trigger = dropdown.querySelector('.dropdown-trigger');
-        const content = dropdown.querySelector('.dropdown-content');
-        
-        trigger.addEventListener('click', (e) => {
-            e.preventDefault();
-            content.style.display = content.style.display === 'block' ? 'none' : 'block';
-            content.style.opacity = content.style.display === 'block' ? '1' : '0';
-            content.style.transform = content.style.display === 'block' ? 'translateY(0)' : 'translateY(-10px)';
-        });
-        
-        document.addEventListener('click', (e) => {
-            if (!dropdown.contains(e.target)) {
-                content.style.display = 'none';
-                content.style.opacity = '0';
-                content.style.transform = 'translateY(-10px)';
-            }
-        });
-    });
+    // Star rating functionality
+    const ratingInput = document.querySelector('#rating');
+    const ratingStars = document.querySelector('.rating-stars');
 
-    // Form validation
-    const forms = document.querySelectorAll('form');
-    
-    forms.forEach(form => {
-        form.addEventListener('submit', (e) => {
-            const requiredFields = form.querySelectorAll('[required]');
-            let isValid = true;
-            
-            requiredFields.forEach(field => {
-                if (!field.value.trim()) {
-                    isValid = false;
-                    field.classList.add('error');
-                    const errorMessage = field.nextElementSibling;
-                    if (errorMessage && errorMessage.classList.contains('error-message')) {
-                        errorMessage.textContent = 'This field is required';
-                    } else {
-                        const newErrorMessage = document.createElement('span');
-                        newErrorMessage.textContent = 'This field is required';
-                        newErrorMessage.classList.add('error-message');
-                        field.parentNode.insertBefore(newErrorMessage, field.nextSibling);
-                    }
-                } else {
-                    field.classList.remove('error');
-                    const errorMessage = field.nextElementSibling;
-                    if (errorMessage && errorMessage.classList.contains('error-message')) {
-                        errorMessage.remove();
-                    }
-                }
+    if (ratingInput && ratingStars) {
+        const stars = ratingStars.querySelectorAll('.star');
+
+        stars.forEach(star => {
+            star.addEventListener('click', function() {
+                ratingInput.value = this.dataset.value;
+                updateStars();
             });
-            
-            if (!isValid) {
-                e.preventDefault();
-            }
-        });
-    });
 
-    // File upload preview
-    const fileInput = document.querySelector('input[type="file"]');
-    const preview = document.querySelector('#file-preview');
-    
-    if (fileInput && preview) {
-        fileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    preview.src = e.target.result;
-                    preview.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            }
+            star.addEventListener('mouseover', function() {
+                const hoverValue = this.dataset.value;
+                highlightStars(hoverValue);
+            });
+
+            star.addEventListener('mouseout', function() {
+                const selectedValue = ratingInput.value;
+                highlightStars(selectedValue);
+            });
         });
+
+        function updateStars() {
+            const selectedValue = ratingInput.value;
+            highlightStars(selectedValue);
+        }
+
+        function highlightStars(value) {
+            stars.forEach(star => {
+                star.innerHTML = star.dataset.value <= value ? '&#9733;' : '&#9734;';
+                star.classList.toggle('filled', star.dataset.value <= value);
+            });
+        }
+
+        // Initialize stars based on the initial value
+        updateStars();
     }
 
-    // Smooth scroll for anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            document.querySelector(this.getAttribute('href')).scrollIntoView({
-                behavior: 'smooth'
-            });
-        });
-    });
-
-    // Add animation to elements when they come into view
-    const animateOnScroll = () => {
-        const elements = document.querySelectorAll('.animate-on-scroll');
-        elements.forEach(element => {
-            const elementTop = element.getBoundingClientRect().top;
-            const elementBottom = element.getBoundingClientRect().bottom;
-            if (elementTop < window.innerHeight && elementBottom > 0) {
-                element.classList.add('animated');
+    // Prevent double submission of review form
+    const reviewForm = document.querySelector('.review-form form');
+    if (reviewForm) {
+        reviewForm.addEventListener('submit', function(e) {
+            const submitButton = this.querySelector('input[type="submit"]');
+            if (submitButton && submitButton.getAttribute('data-submitted')) {
+                e.preventDefault();
+            } else {
+                if (submitButton) {
+                    submitButton.setAttribute('data-submitted', 'true');
+                    submitButton.value = 'Submitting...';
+                    submitButton.disabled = true;
+                }
             }
-        });
-    };
-
-    window.addEventListener('scroll', animateOnScroll);
-    animateOnScroll(); // Run once on load
-
-    // Toggle mobile menu
-    const menuToggle = document.querySelector('.menu-toggle');
-    const navMenu = document.querySelector('nav ul');
-
-    if (menuToggle && navMenu) {
-        menuToggle.addEventListener('click', () => {
-            navMenu.classList.toggle('show');
         });
     }
 });
