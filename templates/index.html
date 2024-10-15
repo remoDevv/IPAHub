@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}IPA Library - Home{% endblock %}
+
+{% block content %}
+    <h1>Welcome to IPA Library</h1>
+    <p>Discover and download iOS apps with ease.</p>
+
+    <section class="featured-apps">
+        <h2>Featured Apps</h2>
+        <div class="app-list">
+            {% for app in featured_apps %}
+                <div class="app-item">
+                    <img src="{{ url_for('static', filename=app.icon_path) }}" alt="{{ app.name }} icon">
+                    <h3>{{ app.name }}</h3>
+                    <p>{{ app.description[:100] }}...</p>
+                    <a href="{{ url_for('main.download_app', app_id=app.id) }}" class="download-btn">Download</a>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="search-section">
+        <h2>Search for Apps</h2>
+        <form action="{{ url_for('main.search') }}" method="get">
+            <input type="text" name="query" placeholder="Search for apps...">
+            <button type="submit">Search</button>
+        </form>
+    </section>
+{% endblock %}

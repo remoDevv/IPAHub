@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}IPA Library - Upload App{% endblock %}
+
+{% block content %}
+    <h1>Upload IPA App</h1>
+    <form method="POST" action="{{ url_for('main.upload') }}" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+        <div>
+            {{ form.name.label }}
+            {{ form.name() }}
+        </div>
+        <div>
+            {{ form.description.label }}
+            {{ form.description() }}
+        </div>
+        <div>
+            {{ form.compatibility.label }}
+            {{ form.compatibility() }}
+        </div>
+        <div>
+            {{ form.icon.label }}
+            {{ form.icon() }}
+        </div>
+        <div>
+            {{ form.ipa_file.label }}
+            {{ form.ipa_file() }}
+        </div>
+        <div>
+            {{ form.submit() }}
+        </div>
+    </form>
+{% endblock %}
