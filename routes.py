@@ -82,13 +82,13 @@ def upload():
     if form.validate_on_submit():
         icon_filename = secure_filename(form.icon.data.filename)
         ipa_filename = secure_filename(form.ipa_file.data.filename)
-        
+
         icon_path = os.path.join('uploads', 'icons', icon_filename)
         ipa_path = os.path.join('uploads', 'ipas', ipa_filename)
-        
+
         form.icon.data.save(icon_path)
         form.ipa_file.data.save(ipa_path)
-        
+
         new_app = IPAApp()  # Create the object without any arguments
         new_app.name = form.name.data
         new_app.description = form.description.data
@@ -98,7 +98,7 @@ def upload():
         new_app.user_id = current_user.id
         db.session.add(new_app)
         db.session.commit()
-        
+
         flash('IPA app uploaded successfully!', 'success')
         return redirect(url_for('main.index'))
     return render_template('upload.html', form=form)
