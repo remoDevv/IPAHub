@@ -1,34 +1,56 @@
 {% extends "base.html" %}
 
-{% block title %}IPA Library - Search{% endblock %}
+{% block title %}Search - IPA Library{% endblock %}
 
 {% block content %}
-    <h1>Search IPA Apps</h1>
-    <form method="POST" action="{{ url_for('main.search') }}">
-        {{ form.hidden_tag() }}
-        <div>
-            {{ form.query.label }}
-            {{ form.query() }}
-        </div>
-        <div>
-            {{ form.submit() }}
-        </div>
-    </form>
+<h1 class="mb-4">Search IPA Apps</h1>
 
-    {% if apps %}
+<div class="row">
+    <div class="col-md-4">
+        <form method="GET" action="{{ url_for('main.search') }}" class="search-form mb-4">
+            <div class="mb-3">
+                {{ form.query.label(class="form-label") }}
+                {{ form.query(class="form-control") }}
+            </div>
+            <div class="mb-3">
+                {{ form.ios_version.label(class="form-label") }}
+                {{ form.ios_version(class="form-control") }}
+            </div>
+            <div class="mb-3">
+                {{ form.submit(class="btn btn-primary") }}
+            </div>
+        </form>
+    </div>
+    <div class="col-md-8">
         <h2>Search Results</h2>
-        <div class="app-list">
-            {% for app in apps %}
-                <div class="app-item">
-                    <img src="{{ url_for('static', filename=app.icon_path) }}" alt="{{ app.name }} icon">
-                    <h3>{{ app.name }}</h3>
-                    <p>{{ app.description[:100] }}...</p>
-                    <p>Compatibility: {{ app.compatibility }}</p>
-                    <a href="{{ url_for('main.download_app', app_id=app.id) }}" class="download-btn">Download</a>
+        {% if apps %}
+            <div class="row">
+                {% for app in apps %}
+                <div class="col-md-6 mb-3">
+                    <div class="card app-card">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-2">
+                                {% if app.icon_path %}
+                                <img src="{{ app.icon_path }}" alt="{{ app.name }} icon" class="app-icon me-2">
+                                {% else %}
+                                <div class="app-icon me-2 bg-secondary d-flex align-items-center justify-content-center">
+                                    <span>No icon</span>
+                                </div>
+                                {% endif %}
+                                <h5 class="card-title mb-0">{{ app.name }}</h5>
+                            </div>
+                            <p class="card-text">{{ app.description[:100] }}{% if app.description|length > 100 %}...{% endif %}</p>
+                            <p class="card-text"><small class="text-muted">iOS {{ app.ios_version }}</small></p>
+                            <a href="#" class="btn btn-primary btn-sm">Download</a>
+                            <a href="{{ url_for('main.report', app_id=app.id) }}" class="btn btn-outline-danger btn-sm">Report</a>
+                        </div>
+                    </div>
                 </div>
-            {% endfor %}
-        </div>
-    {% elif form.query.data %}
-        <p>No results found for "{{ form.query.data }}"</p>
-    {% endif %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No apps found matching your search criteria.</p>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}

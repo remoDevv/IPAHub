@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - IPA Library{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Admin Dashboard</h1>
+
+<div class="row">
+    <div class="col-md-12">
+        <h2>Recent Reports</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>App Name</th>
+                    <th>Reported By</th>
+                    <th>Reason</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for report in reports %}
+                <tr>
+                    <td>{{ report.app.name }}</td>
+                    <td>{{ report.user.username }}</td>
+                    <td>{{ report.reason }}</td>
+                    <td>{{ report.date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    <td>
+                        <a href="#" class="btn btn-sm btn-danger">Remove App</a>
+                        <a href="#" class="btn btn-sm btn-secondary">Dismiss Report</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

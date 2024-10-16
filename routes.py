@@ -1,165 +1,127 @@
-import os
-from flask import Blueprint, render_template, redirect, url_for, flash, request, abort, send_from_directory
-from flask_login import login_user, login_required, logout_user, current_user
+from flask import Blueprint, render_template, redirect, url_for, flash, request, abort
+from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 from app import db, login_manager
-from models import User, IPAApp, Review, Download
-from forms import SignupForm, LoginForm, UploadForm, SearchForm, ReviewForm
-from utils import admin_required, allowed_file
+from models import User, App, Report
+from forms import LoginForm, SignupForm, UploadForm, ReportForm, SearchForm
+from utils import allowed_file, save_file
+import os
 
 main_bp = Blueprint('main', __name__)
-auth_bp = Blueprint('auth', __name__)
-admin_bp = Blueprint('admin', __name__)
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
 @main_bp.route('/')
-def index():
-    featured_apps = IPAApp.query.order_by(IPAApp.id.desc()).limit(6).all()
-    return render_template('index.html', featured_apps=featured_apps)
+def home():
+    apps = App.query.order_by(App.upload_date.desc()).limit(10).all()
+    return render_template('home.html', apps=apps)
 
-@main_bp.route('/search', methods=['GET', 'POST'])
-def search():
-    form = SearchForm()
-    if form.validate_on_submit():
-        query = form.query.data
-        apps = IPAApp.query.filter(IPAApp.name.contains(query) | IPAApp.description.contains(query)).all()
-        return render_template('search.html', form=form, apps=apps)
-    return render_template('search.html', form=form)
-
-@main_bp.route('/tutorials')
-def tutorials():
-    return render_template('tutorials.html')
-
-@main_bp.route('/terms')
-def terms():
-    return render_template('terms.html')
-
-@main_bp.route('/privacy')
-def privacy():
-    return render_template('privacy.html')
-
-@auth_bp.route('/signup', methods=['GET', 'POST'])
-def signup():
-    form = SignupForm()
-    if form.validate_on_submit():
-        user = User()
-        user.username = form.username.data
-        user.email = form.email.data
-        user.set_password(form.password.data)
-        db.session.add(user)
-        db.session.commit()
-        flash('Account created successfully!', 'success')
-        return redirect(url_for('auth.login'))
-    return render_template('signup.html', form=form)
-
-@auth_bp.route('/login', methods=['GET', 'POST'])
+@main_bp.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
+        user = User.query.filter_by(username=form.username.data).first()
         if user and user.check_password(form.password.data):
             login_user(user)
-            flash('Logged in successfully!', 'success')
-            return redirect(url_for('main.index'))
-        else:
-            flash('Invalid email or password', 'error')
+            return redirect(url_for('main.home'))
+        flash('Invalid username or password')
     return render_template('login.html', form=form)
 
-@auth_bp.route('/logout')
+@main_bp.route('/signup', methods=['GET', 'POST'])
+def signup():
+    form = SignupForm()
+    if form.validate_on_submit():
+        user = User(username=form.username.data, email=form.email.data)
+        user.set_password(form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        flash('Account created successfully')
+        return redirect(url_for('main.login'))
+    return render_template('signup.html', form=form)
+
+@main_bp.route('/logout')
 @login_required
 def logout():
     logout_user()
-    flash('Logged out successfully!', 'success')
-    return redirect(url_for('main.index'))
+    return redirect(url_for('main.home'))
 
 @main_bp.route('/upload', methods=['GET', 'POST'])
 @login_required
 def upload():
     form = UploadForm()
     if form.validate_on_submit():
-        icon_filename = secure_filename(form.icon.data.filename)
-        ipa_filename = secure_filename(form.ipa_file.data.filename)
-
-        icon_path = os.path.join('uploads', 'icons', icon_filename)
-        ipa_path = os.path.join('uploads', 'ipas', ipa_filename)
-
-        form.icon.data.save(icon_path)
-        form.ipa_file.data.save(ipa_path)
-
-        new_app = IPAApp()  # Create the object without any arguments
-        new_app.name = form.name.data
-        new_app.description = form.description.data
-        new_app.compatibility = form.compatibility.data
-        new_app.icon_path = icon_path
-        new_app.file_path = ipa_path
-        new_app.user_id = current_user.id
-        db.session.add(new_app)
-        db.session.commit()
-
-        flash('IPA app uploaded successfully!', 'success')
-        return redirect(url_for('main.index'))
+        app_file = form.app_file.data
+        icon_file = form.app_icon.data
+        if app_file and allowed_file(app_file.filename, ['ipa']):
+            app_filename = secure_filename(app_file.filename)
+            app_path = save_file(app_file, app_filename)
+            icon_path = None
+            if icon_file and allowed_file(icon_file.filename, ['png', 'jpg', 'jpeg']):
+                icon_filename = secure_filename(icon_file.filename)
+                icon_path = save_file(icon_file, icon_filename)
+            
+            new_app = App(
+                name=form.app_name.data,
+                description=form.app_description.data,
+                ios_version=form.ios_version.data,
+                file_path=app_path,
+                icon_path=icon_path,
+                user_id=current_user.id
+            )
+            db.session.add(new_app)
+            db.session.commit()
+            flash('App uploaded successfully')
+            return redirect(url_for('main.home'))
     return render_template('upload.html', form=form)
 
-@admin_bp.route('/admin')
-@login_required
-@admin_required
-def admin_dashboard():
-    users = User.query.all()
-    apps = IPAApp.query.all()
-    return render_template('admin.html', users=users, apps=apps)
+@main_bp.route('/search')
+def search():
+    form = SearchForm()
+    query = request.args.get('query', '')
+    ios_version = request.args.get('ios_version', '')
+    apps = App.query
+    if query:
+        apps = apps.filter(App.name.ilike(f'%{query}%') | App.description.ilike(f'%{query}%'))
+    if ios_version:
+        apps = apps.filter(App.ios_version == ios_version)
+    apps = apps.all()
+    return render_template('search.html', form=form, apps=apps)
 
-@main_bp.route('/download/<int:app_id>')
+@main_bp.route('/report/<int:app_id>', methods=['GET', 'POST'])
 @login_required
-def download_app(app_id):
-    app = IPAApp.query.get_or_404(app_id)
-    download = Download(user_id=current_user.id, app_id=app.id)
-    db.session.add(download)
-    db.session.commit()
-    return send_from_directory(os.path.dirname(app.file_path), os.path.basename(app.file_path), as_attachment=True)
-
-@main_bp.route('/app/<int:app_id>', methods=['GET', 'POST'])
-@login_required
-def app_details(app_id):
-    app = IPAApp.query.get_or_404(app_id)
-    form = ReviewForm()
+def report(app_id):
+    app = App.query.get_or_404(app_id)
+    form = ReportForm()
     if form.validate_on_submit():
-        existing_review = Review.query.filter_by(user_id=current_user.id, app_id=app.id).first()
-        if existing_review:
-            existing_review.content = form.content.data
-            existing_review.rating = form.rating.data
-            flash('Your review has been updated!', 'success')
-        else:
-            review = Review(
-                content=form.content.data,
-                rating=form.rating.data,
-                user_id=current_user.id,
-                app_id=app.id
-            )
-            db.session.add(review)
-            flash('Your review has been submitted!', 'success')
+        report = Report(reason=form.reason.data, app_id=app.id, user_id=current_user.id)
+        db.session.add(report)
         db.session.commit()
-        return redirect(url_for('main.app_details', app_id=app.id))
-    reviews = Review.query.filter_by(app_id=app.id).order_by(Review.timestamp.desc()).all()
-    return render_template('app_details.html', app=app, form=form, reviews=reviews)
+        flash('Report submitted successfully')
+        return redirect(url_for('main.home'))
+    return render_template('report.html', form=form, app=app)
 
-@auth_bp.route('/profile')
+@main_bp.route('/admin')
 @login_required
-def profile():
-    downloads = Download.query.filter_by(user_id=current_user.id).order_by(Download.timestamp.desc()).all()
-    return render_template('profile.html', user=current_user, downloads=downloads)
+def admin_dashboard():
+    if not current_user.is_admin:
+        abort(403)
+    reports = Report.query.order_by(Report.date.desc()).all()
+    return render_template('admin_dashboard.html', reports=reports)
 
-@main_bp.route('/favorite/<int:app_id>', methods=['POST'])
-@login_required
-def favorite_app(app_id):
-    app = IPAApp.query.get_or_404(app_id)
-    if app in current_user.favorites:
-        current_user.favorites.remove(app)
-        flash('App removed from favorites.', 'success')
-    else:
-        current_user.favorites.append(app)
-        flash('App added to favorites.', 'success')
-    db.session.commit()
-    return redirect(url_for('main.app_details', app_id=app_id))
+@main_bp.route('/tutorial')
+def tutorial():
+    return render_template('tutorial.html')
+
+@main_bp.route('/side_loading')
+def side_loading():
+    return render_template('side_loading.html')
+
+@main_bp.route('/terms')
+def terms_of_service():
+    return render_template('terms_of_service.html')
+
+@main_bp.route('/privacy')
+def privacy_policy():
+    return render_template('privacy_policy.html')

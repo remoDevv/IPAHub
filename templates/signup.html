@@ -1,30 +1,46 @@
 {% extends "base.html" %}
 
-{% block title %}IPA Library - Sign Up{% endblock %}
+{% block title %}Sign Up - IPA Library{% endblock %}
 
 {% block content %}
-    <h1>Sign Up</h1>
-    <form method="POST" action="{{ url_for('auth.signup') }}">
-        {{ form.hidden_tag() }}
-        <div>
-            {{ form.username.label }}
-            {{ form.username() }}
-        </div>
-        <div>
-            {{ form.email.label }}
-            {{ form.email() }}
-        </div>
-        <div>
-            {{ form.password.label }}
-            {{ form.password() }}
-        </div>
-        <div>
-            {{ form.confirm_password.label }}
-            {{ form.confirm_password() }}
-        </div>
-        <div>
-            {{ form.submit() }}
-        </div>
-    </form>
-    <p>Already have an account? <a href="{{ url_for('auth.login') }}">Login here</a></p>
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h1 class="mb-4">Sign Up</h1>
+        <form method="POST" action="{{ url_for('main.signup') }}" class="needs-validation" novalidate>
+            {{ form.hidden_tag() }}
+            <div class="mb-3">
+                {{ form.username.label(class="form-label") }}
+                {{ form.username(class="form-control", required=True) }}
+                <div class="invalid-feedback">
+                    Please choose a username.
+                </div>
+            </div>
+            <div class="mb-3">
+                {{ form.email.label(class="form-label") }}
+                {{ form.email(class="form-control", required=True, type="email") }}
+                <div class="invalid-feedback">
+                    Please enter a valid email address.
+                </div>
+            </div>
+            <div class="mb-3">
+                {{ form.password.label(class="form-label") }}
+                {{ form.password(class="form-control", required=True) }}
+                <div class="invalid-feedback">
+                    Please enter a password.
+                </div>
+            </div>
+            <div class="mb-3">
+                {{ form.confirm_password.label(class="form-label") }}
+                {{ form.confirm_password(class="form-control", required=True) }}
+                <div class="invalid-feedback">
+                    Please confirm your password.
+                </div>
+            </div>
+            <div class="mb-3">
+                {{ form.submit(class="btn btn-primary") }}
+            </div>
+        </form>
+        <p>Already have an account? <a href="{{ url_for('main.login') }}">Login here</a></p>
+    </div>
+</div>
 {% endblock %}

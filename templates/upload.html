@@ -1,33 +1,50 @@
 {% extends "base.html" %}
 
-{% block title %}IPA Library - Upload App{% endblock %}
+{% block title %}Upload App - IPA Library{% endblock %}
 
 {% block content %}
-    <h1>Upload IPA App</h1>
-    <form method="POST" action="{{ url_for('main.upload') }}" enctype="multipart/form-data">
-        {{ form.hidden_tag() }}
-        <div>
-            {{ form.name.label }}
-            {{ form.name() }}
-        </div>
-        <div>
-            {{ form.description.label }}
-            {{ form.description() }}
-        </div>
-        <div>
-            {{ form.compatibility.label }}
-            {{ form.compatibility() }}
-        </div>
-        <div>
-            {{ form.icon.label }}
-            {{ form.icon() }}
-        </div>
-        <div>
-            {{ form.ipa_file.label }}
-            {{ form.ipa_file() }}
-        </div>
-        <div>
-            {{ form.submit() }}
-        </div>
-    </form>
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h1 class="mb-4">Upload IPA App</h1>
+        <form method="POST" action="{{ url_for('main.upload') }}" enctype="multipart/form-data" class="needs-validation" novalidate>
+            {{ form.hidden_tag() }}
+            <div class="mb-3">
+                {{ form.app_name.label(class="form-label") }}
+                {{ form.app_name(class="form-control", required=True) }}
+                <div class="invalid-feedback">
+                    Please enter the app name.
+                </div>
+            </div>
+            <div class="mb-3">
+                {{ form.app_description.label(class="form-label") }}
+                {{ form.app_description(class="form-control", rows=4, required=True) }}
+                <div class="invalid-feedback">
+                    Please enter a description for the app.
+                </div>
+            </div>
+            <div class="mb-3">
+                {{ form.ios_version.label(class="form-label") }}
+                {{ form.ios_version(class="form-control", required=True) }}
+                <div class="invalid-feedback">
+                    Please specify the iOS version compatibility.
+                </div>
+            </div>
+            <div class="mb-3">
+                {{ form.app_file.label(class="form-label") }}
+                {{ form.app_file(class="form-control", required=True, accept=".ipa") }}
+                <div class="invalid-feedback">
+                    Please select an IPA file to upload.
+                </div>
+            </div>
+            <div class="mb-3">
+                {{ form.app_icon.label(class="form-label") }}
+                {{ form.app_icon(class="form-control", accept="image/*") }}
+                <div class="form-text">Optional: Upload an icon for your app (PNG, JPG, or JPEG).</div>
+            </div>
+            <div class="mb-3">
+                {{ form.submit(class="btn btn-primary") }}
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}

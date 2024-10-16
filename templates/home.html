@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Home - IPA Library{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Welcome to IPA Library</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <h2>Recent Uploads</h2>
+        <div class="row">
+            {% for app in apps %}
+            <div class="col-md-6 mb-3">
+                <div class="card app-card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            {% if app.icon_path %}
+                            <img src="{{ app.icon_path }}" alt="{{ app.name }} icon" class="app-icon me-2">
+                            {% else %}
+                            <div class="app-icon me-2 bg-secondary d-flex align-items-center justify-content-center">
+                                <span>No icon</span>
+                            </div>
+                            {% endif %}
+                            <h5 class="card-title mb-0">{{ app.name }}</h5>
+                        </div>
+                        <p class="card-text">{{ app.description[:100] }}{% if app.description|length > 100 %}...{% endif %}</p>
+                        <p class="card-text"><small class="text-muted">iOS {{ app.ios_version }}</small></p>
+                        <a href="#" class="btn btn-primary btn-sm">Download</a>
+                        <a href="{{ url_for('main.report', app_id=app.id) }}" class="btn btn-outline-danger btn-sm">Report</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="col-md-4">
+        <h2>Quick Links</h2>
+        <ul class="list-group">
+            <li class="list-group-item"><a href="{{ url_for('main.tutorial') }}">How to use IPA Library</a></li>
+            <li class="list-group-item"><a href="{{ url_for('main.side_loading') }}">Side Loading Tutorial</a></li>
+            <li class="list-group-item"><a href="{{ url_for('main.search') }}">Advanced Search</a></li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
