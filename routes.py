@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, abort
+from flask import Blueprint, render_template, redirect, url_for, flash, request, abort, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 from app import db, login_manager
@@ -6,8 +6,13 @@ from models import User, App, Report
 from forms import LoginForm, SignupForm, UploadForm, ReportForm, SearchForm
 from utils import allowed_file, save_file
 import os
+import logging
 
 main_bp = Blueprint('main', __name__)
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -52,28 +57,53 @@ def logout():
 def upload():
     form = UploadForm()
     if form.validate_on_submit():
-        app_file = form.app_file.data
-        icon_file = form.app_icon.data
-        if app_file and allowed_file(app_file.filename, ['ipa']):
-            app_filename = secure_filename(app_file.filename)
-            app_path = save_file(app_file, app_filename)
-            icon_path = None
-            if icon_file and allowed_file(icon_file.filename, ['png', 'jpg', 'jpeg']):
-                icon_filename = secure_filename(icon_file.filename)
-                icon_path = save_file(icon_file, icon_filename)
+        try:
+            app_file = form.app_file.data
+            icon_file = form.app_icon.data
             
-            new_app = App(
-                name=form.app_name.data,
-                description=form.app_description.data,
-                ios_version=form.ios_version.data,
-                file_path=app_path,
-                icon_path=icon_path,
-                user_id=current_user.id
-            )
-            db.session.add(new_app)
-            db.session.commit()
-            flash('App uploaded successfully')
-            return redirect(url_for('main.home'))
+            if not app_file:
+                flash('No file part')
+                return redirect(request.url)
+            
+            if app_file.filename == '':
+                flash('No selected file')
+                return redirect(request.url)
+            
+            if app_file and allowed_file(app_file.filename, ['ipa']):
+                app_filename = secure_filename(app_file.filename)
+                
+                # Check if UPLOAD_FOLDER exists, if not create it
+                upload_folder = current_app.config['UPLOAD_FOLDER']
+                if not os.path.exists(upload_folder):
+                    os.makedirs(upload_folder)
+                
+                app_path = save_file(app_file, app_filename)
+                icon_path = None
+                
+                if icon_file and allowed_file(icon_file.filename, ['png', 'jpg', 'jpeg']):
+                    icon_filename = secure_filename(icon_file.filename)
+                    icon_path = save_file(icon_file, icon_filename)
+                
+                new_app = App(
+                    name=form.app_name.data,
+                    description=form.app_description.data,
+                    ios_version=form.ios_version.data,
+                    file_path=app_path,
+                    icon_path=icon_path,
+                    user_id=current_user.id
+                )
+                db.session.add(new_app)
+                db.session.commit()
+                flash('App uploaded successfully')
+                return redirect(url_for('main.home'))
+            else:
+                flash('Invalid file type. Only IPA files are allowed.')
+                return redirect(request.url)
+        except Exception as e:
+            logger.error(f"Error during file upload: {str(e)}")
+            db.session.rollback()
+            flash('An error occurred while uploading the file. Please try again.')
+            return redirect(request.url)
     return render_template('upload.html', form=form)
 
 @main_bp.route('/search')
