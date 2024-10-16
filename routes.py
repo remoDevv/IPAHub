@@ -45,7 +45,9 @@ def privacy():
 def signup():
     form = SignupForm()
     if form.validate_on_submit():
-        user = User(username=form.username.data, email=form.email.data)
+        user = User()
+        user.username = form.username.data
+        user.email = form.email.data
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
@@ -87,14 +89,13 @@ def upload():
         form.icon.data.save(icon_path)
         form.ipa_file.data.save(ipa_path)
         
-        new_app = IPAApp(
-            name=form.name.data,
-            description=form.description.data,
-            compatibility=form.compatibility.data,
-            icon_path=icon_path,
-            file_path=ipa_path,
-            user_id=current_user.id
-        )
+        new_app = IPAApp()  # Create the object without any arguments
+        new_app.name = form.name.data
+        new_app.description = form.description.data
+        new_app.compatibility = form.compatibility.data
+        new_app.icon_path = icon_path
+        new_app.file_path = ipa_path
+        new_app.user_id = current_user.id
         db.session.add(new_app)
         db.session.commit()
         
