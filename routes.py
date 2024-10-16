@@ -2,16 +2,18 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 from app import db, login_manager, csrf
-from models import User, App, Report
-from forms import LoginForm, SignupForm, UploadForm, ReportForm, SearchForm
+from models import User, App, Report, Review
+from forms import LoginForm, SignupForm, UploadForm, ReportForm, SearchForm, ReviewForm
 from utils import allowed_file, save_file
 import os
 import logging
 from functools import wraps
+from flask_wtf import FlaskForm
+from wtforms import PasswordField, SubmitField
+from wtforms.validators import DataRequired
 
 main_bp = Blueprint('main', __name__)
 
-# Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -81,7 +83,6 @@ def upload():
             if app_file and allowed_file(app_file.filename, ['ipa']):
                 app_filename = secure_filename(app_file.filename)
                 
-                # Check if UPLOAD_FOLDER exists, if not create it
                 upload_folder = current_app.config['UPLOAD_FOLDER']
                 if not os.path.exists(upload_folder):
                     os.makedirs(upload_folder)
@@ -147,17 +148,22 @@ def admin_dashboard():
     reports = Report.query.order_by(Report.date.desc()).all()
     return render_template('admin_dashboard.html', reports=reports)
 
+class AdminLoginForm(FlaskForm):
+    password = PasswordField('Password', validators=[DataRequired()])
+    submit = SubmitField('Login')
+
 @main_bp.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
-    if request.method == 'POST':
-        password = request.form.get('password')
-        if password and password == current_app.config['ADMIN_PASSWORD']:
+    form = AdminLoginForm()
+    if form.validate_on_submit():
+        password = form.password.data
+        if password == current_app.config['ADMIN_PASSWORD']:
             session['is_admin'] = True
             flash('Admin login successful', 'success')
             return redirect(url_for('main.admin_dashboard'))
         else:
             flash('Invalid admin password', 'danger')
-    return render_template('admin_login.html')
+    return render_template('admin_login.html', form=form)
 
 @main_bp.route('/tutorial')
 def tutorial():
@@ -174,3 +180,24 @@ def terms_of_service():
 @main_bp.route('/privacy')
 def privacy_policy():
     return render_template('privacy_policy.html')
+
+@main_bp.route('/app/<int:app_id>', methods=['GET', 'POST'])
+def app_detail(app_id):
+    app = App.query.get_or_404(app_id)
+    form = ReviewForm()
+    if form.validate_on_submit():
+        if not current_user.is_authenticated:
+            flash('You must be logged in to submit a review.', 'danger')
+            return redirect(url_for('main.login'))
+        review = Review(
+            content=form.content.data,
+            rating=form.rating.data,
+            app_id=app.id,
+            user_id=current_user.id
+        )
+        db.session.add(review)
+        db.session.commit()
+        flash('Your review has been submitted.', 'success')
+        return redirect(url_for('main.app_detail', app_id=app.id))
+    reviews = Review.query.filter_by(app_id=app.id).order_by(Review.date.desc()).all()
+    return render_template('app_detail.html', app=app, form=form, reviews=reviews)

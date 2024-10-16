@@ -7,15 +7,16 @@
     <div class="col-md-6">
         <h1 class="mb-4">Admin Login</h1>
         <form method="POST" action="{{ url_for('main.admin_login') }}" class="needs-validation" novalidate>
+            {{ form.csrf_token }}
             <div class="mb-3">
-                <label for="password" class="form-label">Admin Password</label>
-                <input type="password" class="form-control" id="password" name="password" required>
+                {{ form.password.label(class="form-label") }}
+                {{ form.password(class="form-control", required=True) }}
                 <div class="invalid-feedback">
                     Please enter the admin password.
                 </div>
             </div>
             <div class="mb-3">
-                <button type="submit" class="btn btn-primary">Login</button>
+                {{ form.submit(class="btn btn-primary") }}
             </div>
         </form>
     </div>

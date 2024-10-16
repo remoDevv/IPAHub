@@ -10,6 +10,7 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(256))
     is_admin = db.Column(db.Boolean, default=False)
     apps = db.relationship('App', backref='author', lazy='dynamic')
+    reviews = db.relationship('Review', backref='author', lazy='dynamic')
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
@@ -30,9 +31,17 @@ class App(db.Model):
     upload_date = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     reports = db.relationship('Report', backref='app', lazy='dynamic')
+    reviews = db.relationship('Review', backref='app', lazy='dynamic')
 
     def __init__(self, **kwargs):
         super(App, self).__init__(**kwargs)
+
+    @property
+    def average_rating(self):
+        reviews = Review.query.filter_by(app_id=self.id).all()
+        if not reviews:
+            return 0
+        return sum(review.rating for review in reviews) / len(reviews)
 
 class Report(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -43,3 +52,14 @@ class Report(db.Model):
 
     def __init__(self, **kwargs):
         super(Report, self).__init__(**kwargs)
+
+class Review(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.Text, nullable=False)
+    rating = db.Column(db.Integer, nullable=False)
+    date = db.Column(db.DateTime, default=datetime.utcnow)
+    app_id = db.Column(db.Integer, db.ForeignKey('app.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    def __init__(self, **kwargs):
+        super(Review, self).__init__(**kwargs)

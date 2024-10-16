@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app.name }} - IPA Library{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">{{ app.name }}</h1>
+    <div class="row">
+        <div class="col-md-4">
+            {% if app.icon_path %}
+            <img src="{{ app.icon_path }}" alt="{{ app.name }} icon" class="img-fluid mb-3">
+            {% else %}
+            <div class="bg-secondary text-white p-3 text-center mb-3">
+                <span>No icon available</span>
+            </div>
+            {% endif %}
+            <p><strong>iOS Version:</strong> {{ app.ios_version }}</p>
+            <p><strong>Upload Date:</strong> {{ app.upload_date.strftime('%Y-%m-%d') }}</p>
+            <p><strong>Average Rating:</strong> {{ "%.1f"|format(app.average_rating) }} / 5</p>
+            <a href="#" class="btn btn-primary">Download</a>
+            <a href="{{ url_for('main.report', app_id=app.id) }}" class="btn btn-outline-danger">Report</a>
+        </div>
+        <div class="col-md-8">
+            <h2>Description</h2>
+            <p>{{ app.description }}</p>
+            
+            <h2>Reviews</h2>
+            {% if current_user.is_authenticated %}
+            <form method="POST" action="{{ url_for('main.app_detail', app_id=app.id) }}" class="mb-4">
+                {{ form.hidden_tag() }}
+                <div class="mb-3">
+                    {{ form.rating.label(class="form-label") }}
+                    {{ form.rating(class="form-control", type="number", min="1", max="5") }}
+                </div>
+                <div class="mb-3">
+                    {{ form.content.label(class="form-label") }}
+                    {{ form.content(class="form-control") }}
+                </div>
+                {{ form.submit(class="btn btn-primary") }}
+            </form>
+            {% else %}
+            <p>Please <a href="{{ url_for('main.login') }}">log in</a> to leave a review.</p>
+            {% endif %}
+            
+            {% for review in reviews %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">{{ review.author.username }}</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">Rating: {{ review.rating }} / 5</h6>
+                    <p class="card-text">{{ review.content }}</p>
+                    <p class="card-text"><small class="text-muted">{{ review.date.strftime('%Y-%m-%d %H:%M:%S') }}</small></p>
+                </div>
+            </div>
+            {% else %}
+            <p>No reviews yet. Be the first to review this app!</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

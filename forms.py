@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, TextAreaField, FileField, SubmitField
-from wtforms.validators import DataRequired, Email, EqualTo, Length
+from wtforms import StringField, PasswordField, TextAreaField, FileField, SubmitField, IntegerField
+from wtforms.validators import DataRequired, Email, EqualTo, Length, NumberRange
 
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
@@ -30,3 +30,8 @@ class SearchForm(FlaskForm):
     query = StringField('Search')
     ios_version = StringField('iOS Version')
     submit = SubmitField('Search')
+
+class ReviewForm(FlaskForm):
+    content = TextAreaField('Review', validators=[DataRequired(), Length(min=10, max=500)])
+    rating = IntegerField('Rating', validators=[DataRequired(), NumberRange(min=1, max=5)])
+    submit = SubmitField('Submit Review')
