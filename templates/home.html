@@ -24,12 +24,8 @@
                             <h5 class="card-title mb-0">{{ app.name }}</h5>
                         </div>
                         <p class="card-text">{{ app.description[:100] }}{% if app.description|length > 100 %}...{% endif %}</p>
-                        <p class="card-text">
-                            <small class="text-muted">iOS {{ app.ios_version }}</small>
-                            <br>
-                            <small class="text-muted">Rating: {{ "%.1f"|format(app.average_rating) }} / 5.0</small>
-                        </p>
-                        <a href="{{ url_for('main.app_details', app_id=app.id) }}" class="btn btn-primary btn-sm">View Details</a>
+                        <p class="card-text"><small class="text-muted">iOS {{ app.ios_version }}</small></p>
+                        <a href="#" class="btn btn-primary btn-sm">Download</a>
                         <a href="{{ url_for('main.report', app_id=app.id) }}" class="btn btn-outline-danger btn-sm">Report</a>
                     </div>
                 </div>

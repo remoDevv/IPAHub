@@ -1,7 +1,7 @@
 import os
 import zipfile
 
-def create_project_zip(output_filename='project22.zip'):
+def create_project_zip(output_filename='project.zip'):
     with zipfile.ZipFile(output_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
         for root, dirs, files in os.walk('.'):
             # Exclude unnecessary directories

@@ -3,59 +3,58 @@
 {% block title %}{{ app.name }} - IPA Library{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1 class="mb-4">{{ app.name }}</h1>
-    <div class="row">
-        <div class="col-md-4">
-            {% if app.icon_path %}
-            <img src="{{ app.icon_path }}" alt="{{ app.name }} icon" class="img-fluid mb-3">
-            {% else %}
-            <div class="bg-secondary text-white p-3 mb-3">No icon available</div>
-            {% endif %}
-            <p><strong>iOS Version:</strong> {{ app.ios_version }}</p>
-            <p><strong>Upload Date:</strong> {{ app.upload_date.strftime('%Y-%m-%d') }}</p>
-            <p><strong>Average Rating:</strong> {{ "%.1f"|format(app.average_rating) }} / 5.0</p>
-            <a href="#" class="btn btn-primary">Download</a>
-            <a href="{{ url_for('main.report', app_id=app.id) }}" class="btn btn-outline-danger">Report</a>
-        </div>
-        <div class="col-md-8">
-            <h2>Description</h2>
-            <p>{{ app.description }}</p>
-            
-            <h2>Reviews</h2>
-            {% if app.reviews.count() > 0 %}
-                {% for review in app.reviews %}
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ review.user.username }}</h5>
-                        <h6 class="card-subtitle mb-2 text-muted">Rating: {{ review.rating }} / 5</h6>
-                        <p class="card-text">{{ review.content }}</p>
-                        <small class="text-muted">{{ review.date.strftime('%Y-%m-%d %H:%M') }}</small>
-                    </div>
-                </div>
-                {% endfor %}
-            {% else %}
-                <p>No reviews yet. Be the first to review this app!</p>
-            {% endif %}
-            
-            {% if current_user.is_authenticated %}
-            <h3>Write a Review</h3>
-            <form method="POST" action="{{ url_for('main.review', app_id=app.id) }}">
-                {{ review_form.hidden_tag() }}
-                <div class="mb-3">
-                    {{ review_form.rating.label(class="form-label") }}
-                    {{ review_form.rating(class="form-control", min=1, max=5) }}
-                </div>
-                <div class="mb-3">
-                    {{ review_form.content.label(class="form-label") }}
-                    {{ review_form.content(class="form-control", rows=3) }}
-                </div>
-                {{ review_form.submit(class="btn btn-primary") }}
-            </form>
-            {% else %}
-            <p>Please <a href="{{ url_for('main.login') }}">log in</a> to write a review.</p>
-            {% endif %}
-        </div>
+    <div class="app-details">
+        <h1>{{ app.name }}</h1>
+        <img src="{{ url_for('static', filename=app.icon_path) }}" alt="{{ app.name }} icon" class="app-icon">
+        <p class="app-description">{{ app.description }}</p>
+        <p class="app-compatibility">Compatibility: {{ app.compatibility }}</p>
+        <p class="app-rating">Average Rating: {{ "%.1f"|format(app.average_rating) }} / 5</p>
+        <a href="{{ url_for('main.download_app', app_id=app.id) }}" class="download-btn">Download</a>
     </div>
-</div>
+
+    <div class="reviews-section">
+        <h2>Reviews</h2>
+        {% if reviews %}
+            {% for review in reviews %}
+                <div class="review">
+                    <p class="review-rating">
+                        {% for i in range(5) %}
+                            {% if i < review.rating %}
+                                <span class="star filled">&#9733;</span>
+                            {% else %}
+                                <span class="star">&#9734;</span>
+                            {% endif %}
+                        {% endfor %}
+                    </p>
+                    <p class="review-content">{{ review.content }}</p>
+                    <p class="review-author">By {{ review.user.username }} on {{ review.timestamp.strftime('%Y-%m-%d %H:%M') }}</p>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No reviews yet. Be the first to review this app!</p>
+        {% endif %}
+    </div>
+
+    <div class="review-form">
+        <h2>Write a Review</h2>
+        <form method="POST" action="{{ url_for('main.app_details', app_id=app.id) }}">
+            {{ form.hidden_tag() }}
+            <div class="rating-input">
+                {{ form.rating.label }}
+                <div class="rating-stars">
+                    {% for i in range(1, 6) %}
+                        <span class="star" data-value="{{ i }}">&#9734;</span>
+                    {% endfor %}
+                </div>
+                {{ form.rating(style="display: none;") }}
+            </div>
+            <div>
+                {{ form.content.label }}
+                {{ form.content(rows=5, cols=50) }}
+            </div>
+            <div>
+                {{ form.submit(class="submit-btn") }}
+            </div>
+        </form>
+    </div>
 {% endblock %}

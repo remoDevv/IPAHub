@@ -2,14 +2,30 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 from app import db, login_manager, csrf
-from models import User, App, Report, Review
-from forms import LoginForm, SignupForm, UploadForm, ReportForm, SearchForm, AdminLoginForm, ReviewForm
+from models import User, App, Report
+from forms import LoginForm, SignupForm, UploadForm, ReportForm, SearchForm
 from utils import allowed_file, save_file
 import os
 import logging
 from functools import wraps
 
 main_bp = Blueprint('main', __name__)
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+def check_admin(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if session.get('is_admin'):
+            return f(*args, **kwargs)
+        return abort(403)
+    return decorated_function
 
 @main_bp.route('/')
 def home():
@@ -65,6 +81,7 @@ def upload():
             if app_file and allowed_file(app_file.filename, ['ipa']):
                 app_filename = secure_filename(app_file.filename)
                 
+                # Check if UPLOAD_FOLDER exists, if not create it
                 upload_folder = current_app.config['UPLOAD_FOLDER']
                 if not os.path.exists(upload_folder):
                     os.makedirs(upload_folder)
@@ -92,7 +109,7 @@ def upload():
                 flash('Invalid file type. Only IPA files are allowed.')
                 return redirect(request.url)
         except Exception as e:
-            logging.error(f"Error during file upload: {str(e)}")
+            logger.error(f"Error during file upload: {str(e)}")
             db.session.rollback()
             flash('An error occurred while uploading the file. Please try again.')
             return redirect(request.url)
@@ -125,49 +142,22 @@ def report(app_id):
     return render_template('report.html', form=form, app=app)
 
 @main_bp.route('/admin', methods=['GET', 'POST'])
-@login_required
+@check_admin
 def admin_dashboard():
-    if not current_user.is_admin:
-        abort(403)
     reports = Report.query.order_by(Report.date.desc()).all()
     return render_template('admin_dashboard.html', reports=reports)
 
 @main_bp.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
-    form = AdminLoginForm()
-    if form.validate_on_submit():
-        if form.password.data == current_app.config['ADMIN_PASSWORD']:
+    if request.method == 'POST':
+        password = request.form.get('password')
+        if password and password == current_app.config['ADMIN_PASSWORD']:
             session['is_admin'] = True
             flash('Admin login successful', 'success')
             return redirect(url_for('main.admin_dashboard'))
         else:
             flash('Invalid admin password', 'danger')
-    return render_template('admin_login.html', form=form)
-
-@main_bp.route('/app/<int:app_id>/review', methods=['GET', 'POST'])
-@login_required
-def review(app_id):
-    app = App.query.get_or_404(app_id)
-    form = ReviewForm()
-    if form.validate_on_submit():
-        review = Review(
-            content=form.content.data,
-            rating=form.rating.data,
-            app_id=app.id,
-            user_id=current_user.id
-        )
-        db.session.add(review)
-        db.session.commit()
-        app.update_average_rating()
-        flash('Review submitted successfully')
-        return redirect(url_for('main.app_details', app_id=app.id))
-    return render_template('review.html', form=form, app=app)
-
-@main_bp.route('/app/<int:app_id>')
-def app_details(app_id):
-    app = App.query.get_or_404(app_id)
-    review_form = ReviewForm()
-    return render_template('app_details.html', app=app, review_form=review_form)
+    return render_template('admin_login.html')
 
 @main_bp.route('/tutorial')
 def tutorial():
