@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, abort, current_app, session
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
-from app import db, login_manager
+from app import db, login_manager, csrf
 from models import User, App, Report
 from forms import LoginForm, SignupForm, UploadForm, ReportForm, SearchForm
 from utils import allowed_file, save_file
@@ -150,11 +150,13 @@ def admin_dashboard():
 @main_bp.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
     if request.method == 'POST':
-        if request.form['password'] == 'klima':
+        password = request.form.get('password')
+        if password and password == current_app.config['ADMIN_PASSWORD']:
             session['is_admin'] = True
+            flash('Admin login successful', 'success')
             return redirect(url_for('main.admin_dashboard'))
         else:
-            flash('Invalid admin password')
+            flash('Invalid admin password', 'danger')
     return render_template('admin_login.html')
 
 @main_bp.route('/tutorial')

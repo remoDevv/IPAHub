@@ -11,6 +11,9 @@ class User(UserMixin, db.Model):
     is_admin = db.Column(db.Boolean, default=False)
     apps = db.relationship('App', backref='author', lazy='dynamic')
 
+    def __init__(self, **kwargs):
+        super(User, self).__init__(**kwargs)
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
@@ -28,9 +31,15 @@ class App(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     reports = db.relationship('Report', backref='app', lazy='dynamic')
 
+    def __init__(self, **kwargs):
+        super(App, self).__init__(**kwargs)
+
 class Report(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     reason = db.Column(db.Text, nullable=False)
     date = db.Column(db.DateTime, default=datetime.utcnow)
     app_id = db.Column(db.Integer, db.ForeignKey('app.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    def __init__(self, **kwargs):
+        super(Report, self).__init__(**kwargs)

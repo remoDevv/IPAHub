@@ -6,3 +6,4 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     UPLOAD_FOLDER = 'uploads'
     MAX_CONTENT_LENGTH = 500 * 1024 * 1024  # 500 MB max upload size
+    ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD') or 'klima'  # Default password, change in production
