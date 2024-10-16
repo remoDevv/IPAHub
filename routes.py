@@ -220,3 +220,37 @@ def app_detail(app_id):
         return redirect(url_for('main.app_detail', app_id=app.id))
     reviews = Review.query.filter_by(app_id=app.id).order_by(Review.date.desc()).all()
     return render_template('app_detail.html', app=app, form=form, reviews=reviews)
+
+@main_bp.route('/review/<int:review_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_review(review_id):
+    review = Review.query.get_or_404(review_id)
+    if review.user_id != current_user.id:
+        flash('You can only edit your own reviews.', 'danger')
+        return redirect(url_for('main.app_detail', app_id=review.app_id))
+    
+    form = ReviewForm()
+    if form.validate_on_submit():
+        review.content = form.content.data
+        review.rating = form.rating.data
+        db.session.commit()
+        flash('Your review has been updated.', 'success')
+        return redirect(url_for('main.app_detail', app_id=review.app_id))
+    elif request.method == 'GET':
+        form.content.data = review.content
+        form.rating.data = review.rating
+    
+    return render_template('edit_review.html', form=form, review=review)
+
+@main_bp.route('/review/<int:review_id>/delete', methods=['POST'])
+@login_required
+def delete_review(review_id):
+    review = Review.query.get_or_404(review_id)
+    if review.user_id != current_user.id:
+        flash('You can only delete your own reviews.', 'danger')
+        return redirect(url_for('main.app_detail', app_id=review.app_id))
+    
+    db.session.delete(review)
+    db.session.commit()
+    flash('Your review has been deleted.', 'success')
+    return redirect(url_for('main.app_detail', app_id=review.app_id))
