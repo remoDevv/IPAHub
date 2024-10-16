@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, abort, current_app
+from flask import Blueprint, render_template, redirect, url_for, flash, request, abort, current_app, session
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 from app import db, login_manager
@@ -7,6 +7,7 @@ from forms import LoginForm, SignupForm, UploadForm, ReportForm, SearchForm
 from utils import allowed_file, save_file
 import os
 import logging
+from functools import wraps
 
 main_bp = Blueprint('main', __name__)
 
@@ -17,6 +18,14 @@ logger = logging.getLogger(__name__)
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+def check_admin(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if session.get('is_admin'):
+            return f(*args, **kwargs)
+        return abort(403)
+    return decorated_function
 
 @main_bp.route('/')
 def home():
@@ -132,13 +141,21 @@ def report(app_id):
         return redirect(url_for('main.home'))
     return render_template('report.html', form=form, app=app)
 
-@main_bp.route('/admin')
-@login_required
+@main_bp.route('/admin', methods=['GET', 'POST'])
+@check_admin
 def admin_dashboard():
-    if not current_user.is_admin:
-        abort(403)
     reports = Report.query.order_by(Report.date.desc()).all()
     return render_template('admin_dashboard.html', reports=reports)
+
+@main_bp.route('/admin/login', methods=['GET', 'POST'])
+def admin_login():
+    if request.method == 'POST':
+        if request.form['password'] == 'klima':
+            session['is_admin'] = True
+            return redirect(url_for('main.admin_dashboard'))
+        else:
+            flash('Invalid admin password')
+    return render_template('admin_login.html')
 
 @main_bp.route('/tutorial')
 def tutorial():
