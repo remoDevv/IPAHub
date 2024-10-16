@@ -49,12 +49,27 @@ def login():
 def signup():
     form = SignupForm()
     if form.validate_on_submit():
-        user = User(username=form.username.data, email=form.email.data)
-        user.set_password(form.password.data)
-        db.session.add(user)
-        db.session.commit()
-        flash('Account created successfully')
-        return redirect(url_for('main.login'))
+        try:
+            existing_user = User.query.filter_by(username=form.username.data).first()
+            if existing_user:
+                flash('Username already exists. Please choose a different username.', 'danger')
+                return render_template('signup.html', form=form)
+
+            existing_email = User.query.filter_by(email=form.email.data).first()
+            if existing_email:
+                flash('Email already registered. Please use a different email address.', 'danger')
+                return render_template('signup.html', form=form)
+
+            user = User(username=form.username.data, email=form.email.data)
+            user.set_password(form.password.data)
+            db.session.add(user)
+            db.session.commit()
+            flash('Account created successfully. You can now log in.', 'success')
+            return redirect(url_for('main.login'))
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Error during signup: {str(e)}")
+            flash('An error occurred during signup. Please try again.', 'danger')
     return render_template('signup.html', form=form)
 
 @main_bp.route('/logout')
@@ -73,11 +88,11 @@ def upload():
             icon_file = form.app_icon.data
             
             if not app_file:
-                flash('No file part')
+                flash('No file part', 'danger')
                 return redirect(request.url)
             
             if app_file.filename == '':
-                flash('No selected file')
+                flash('No selected file', 'danger')
                 return redirect(request.url)
             
             if app_file and allowed_file(app_file.filename, ['ipa']):
@@ -104,15 +119,15 @@ def upload():
                 )
                 db.session.add(new_app)
                 db.session.commit()
-                flash('App uploaded successfully')
+                flash('App uploaded successfully', 'success')
                 return redirect(url_for('main.home'))
             else:
-                flash('Invalid file type. Only IPA files are allowed.')
+                flash('Invalid file type. Only IPA files are allowed.', 'danger')
                 return redirect(request.url)
         except Exception as e:
             logger.error(f"Error during file upload: {str(e)}")
             db.session.rollback()
-            flash('An error occurred while uploading the file. Please try again.')
+            flash('An error occurred while uploading the file. Please try again.', 'danger')
             return redirect(request.url)
     return render_template('upload.html', form=form)
 
@@ -156,13 +171,17 @@ class AdminLoginForm(FlaskForm):
 def admin_login():
     form = AdminLoginForm()
     if form.validate_on_submit():
-        password = form.password.data
-        if password == current_app.config['ADMIN_PASSWORD']:
-            session['is_admin'] = True
-            flash('Admin login successful', 'success')
-            return redirect(url_for('main.admin_dashboard'))
-        else:
-            flash('Invalid admin password', 'danger')
+        try:
+            password = form.password.data
+            if password == current_app.config['ADMIN_PASSWORD']:
+                session['is_admin'] = True
+                flash('Admin login successful', 'success')
+                return redirect(url_for('main.admin_dashboard'))
+            else:
+                flash('Invalid admin password', 'danger')
+        except Exception as e:
+            logger.error(f"Error during admin login: {str(e)}")
+            flash('An error occurred during login. Please try again.', 'danger')
     return render_template('admin_login.html', form=form)
 
 @main_bp.route('/tutorial')
